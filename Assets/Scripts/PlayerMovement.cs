@@ -9,10 +9,12 @@ public class PlayerMovement : MonoBehaviour
 {
     Vector2 moveInput;
     Rigidbody2D myRigidBody;
+    float gravity;
     CapsuleCollider2D myCollider;
     
-    [SerializeField] private float _moveSpeed;
-    [SerializeField] private float _jumpSpeed;
+    [SerializeField] private float _moveSpeed = 10f;
+    [SerializeField] private float _jumpSpeed = 5f;
+    [SerializeField] private float _climbSpeed = 5f;
     Animator myAnimator;
 
     // Start is called before the first frame update
@@ -21,6 +23,7 @@ public class PlayerMovement : MonoBehaviour
         myRigidBody = GetComponent<Rigidbody2D>();
         myAnimator = GetComponent<Animator>();
         myCollider = GetComponent<CapsuleCollider2D>();
+        gravity = myRigidBody.gravityScale;
     }
 
     // Update is called once per frame
@@ -28,6 +31,22 @@ public class PlayerMovement : MonoBehaviour
     {
         Run();
         FlipSprite();
+        ClimbLadder();
+    }
+
+    private void ClimbLadder()
+    {
+        if (myCollider.IsTouchingLayers(LayerMask.GetMask("Ladder"))) //  && Mathf.Abs(moveInput.y) > Mathf.Epsilon
+        {
+            Debug.Log("IOs touving ladder");
+            myRigidBody.velocity = new Vector2(myRigidBody.velocity.x, moveInput.y * _climbSpeed);
+            myRigidBody.gravityScale = 0;
+            myAnimator.SetBool("isCliming", Mathf.Abs(myRigidBody.velocity.y) > Mathf.Epsilon);
+        }
+        else
+        {
+            myRigidBody.gravityScale = gravity;
+        }
     }
 
     private void FlipSprite()
@@ -51,6 +70,11 @@ public class PlayerMovement : MonoBehaviour
     void OnMove(InputValue value)
     {
         moveInput = value.Get<Vector2>();
+        if (myCollider.IsTouchingLayers(LayerMask.GetMask("Ladder"))) //  && Mathf.Abs(moveInput.y) > Mathf.Epsilon
+        {
+            Debug.Log("IOs asdasd ladder");
+            myRigidBody.velocity += new Vector2(0f, moveInput.y);
+        }
     }
 
     void OnJump(InputValue value)
